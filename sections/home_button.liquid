@@ -44,19 +44,25 @@
    "type": "select",
    "id": "color",
    "options": [
+      { "value": "noir", "label": "Noir"},
       { "value": "rouge", "label": "Rouge"},
       { "value": "bleu", "label": "Bleu"},
       { "value": "jaune", "label": "Jaune"},
-      { "value": "gris", "label": "Gris"},
-      { "value": "noir", "label": "Noir"}
+      { "value": "gris", "label": "Gris"}
+      
    ],
    "label": "Couleur bouton"
 },
         {
-          "id": "size",
-          "type": "text",
-          "label": "Taille Bouton"
-        }
+    "type":      "range",
+    "id":        "size",
+    "min":       20,
+    "max":        60,
+    "step":       1,
+    "unit":       "px",
+    "label":     "Font size",
+    "default":   16
+}
       ]
     }
   ],
