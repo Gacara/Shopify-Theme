@@ -5,8 +5,8 @@
   </div>
 
   {% for block in section.blocks %}  
-  <div class="{{ block.settings.lien }}" id="call-to-action">   
-    <a href="{{ block.settings.lien }}" class="bouton {{ block.settings.size }} text-center">{{ block.settings.textelien }}</a>
+  <div class="{{ block.settings.lien }} custom" id="call-to-action">   
+    <a href="{{ block.settings.lien }}" style="font-size: {{ block.settings.size }}px" class="bouton {{ block.settings.color }} text-center">{{ block.settings.textelien }}</a>
   </div> 
   {% endfor %}
 
@@ -39,6 +39,16 @@
           "type": "text",
           "label": "Texte Bouton",
           "default": "Valider"
+        },
+        {
+          "id": "color",
+          "type": "text",
+          "label": "Couleur Bouton"
+        },
+        {
+          "id": "size",
+          "type": "text",
+          "label": "Taille Bouton"
         }
       ]
     }
