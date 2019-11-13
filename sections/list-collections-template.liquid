@@ -1,55 +1,98 @@
-<div class="page-width">
-  <header class="section-header text-center">
-    <h1>{{ page_title }}</h1>
-  </header>
+{% comment %}
 
-  {%- assign blocks = section.blocks | sort: 'collection.all_products_count' -%}
+  This page represents the /collections and /products pages.
+  It is an optional, but highly recommended, template for your theme.
 
-  {% case section.settings.grid %}
-    {% when 2 %}
-      {%- assign grid_item_width = 'medium-up--one-half' -%}
-      {%- assign image_size = '530x' -%}
-    {% when 3 %}
-      {%- assign grid_item_width = 'small--one-half medium-up--one-third' -%}
-      {%- assign image_size = '350x' -%}
-    {% when 4 %}
-      {%- assign grid_item_width = 'small--one-half medium-up--one-quarter' -%}
-      {%- assign image_size = '250x' -%}
-    {% when 5 %}
-      {%- assign grid_item_width = 'small--one-half medium-up--one-fifth' -%}
-      {%- assign image_size = '225x' -%}
+  More info:
+    - http://docs.shopify.com/manual/configuration/store-customization/taking-control-of-collections-listing
+
+  Loop through each collection, except 'frontpage'.
+{% endcomment %}
+
+<header class="section-header text-center">
+  <h1>{{ 'collections.general.catalog_title' | t }}</h1>
+  <hr class="hr--small">
+</header>
+
+{%- assign collection_count = 0 -%}
+{%- assign isEmpty = true -%}
+
+{% comment %}
+  Count how many collections we have to show
+{% endcomment %}
+{% if section.settings.display_type == 'all' %}
+  {% case section.settings.sort %}
+    {% when 'products_high' or 'products_low' %}
+      {%- assign list_collections = collections | sort: 'all_products_count' -%}
+    {% when 'date' or 'date_reversed' %}
+      {%- assign list_collections = collections | sort: 'published_at' -%}
+    {% else %}
+      {%- assign list_collections = collections -%}
   {% endcase %}
+  {% for collection in list_collections %}
+    {% unless collection.handle == 'frontpage' %}
+      {%- assign collection_count = collection_count | plus: 1 -%}
+    {% endunless %}
+  {% endfor %}
+{% else %}
+  {%- assign collection_count = section.blocks.size -%}
+{% endif %}
 
-  <ul class="grid grid--uniform">
-    {% if section.settings.display_type == 'all' %}
-      {% case section.settings.sort %}
-        {% when 'products_high' or 'products_low' %}
-          {%- assign collections = collections | sort: 'all_products_count' -%}
-        {% when 'date' or 'date_reversed' %}
-          {%- assign collections = collections | sort: 'published_at' -%}
-      {% endcase %}
-      {% if section.settings.sort == 'products_low' or section.settings.sort == 'date' or section.settings.sort == 'alphabetical' %}
-        {% for collection in collections %}
-          <li class="grid__item {{ grid_item_width }}">
-            {% include 'collection-grid-item', collection: collection %}
-          </li>
-        {% endfor %}
+{% if collection_count > 0 %}
+  {%- assign isEmpty = false -%}
+{% endif %}
+
+{%- assign collection_index = 0 -%}
+{%- assign divisible_by_three = collection_count | modulo: 3 -%}
+{%- assign divisible_by_two = collection_count | modulo: 2 -%}
+
+<div class="grid collection-grid">
+  {% if section.settings.display_type == 'all' %}
+    {% if section.settings.sort == 'products_low' or section.settings.sort == 'date' or section.settings.sort == 'alphabetical' %}
+      {% if isEmpty %}
+        {% comment %}
+          Add default collections to help with onboarding
+        {% endcomment %}
+        {% include 'onboarding-featured-collections' %}
       {% else %}
-        {% for collection in collections reversed %}
-          <li class="grid__item {{ grid_item_width }}">
-            {% include 'collection-grid-item', collection: collection %}
-          </li>
+        {% for collection in list_collections %}
+          {%- assign collection_handle = collection.handle -%}
+
+          {% if collection_handle == 'frontpage' %}
+            {% continue %}
+          {% else %}
+            {%- assign collection_index = collection_index | plus: 1 -%}
+          {% endif %}
+          {% include 'collection-grid-collage' %}
         {% endfor %}
       {% endif %}
     {% else %}
-      {% for block in section.blocks %}
-        <li class="grid__item {{ grid_item_width }}">
-          {%- assign collection = collections[block.settings.collection] -%}
-          {% include 'collection-grid-item', collection: collection %}
-        </li>
-      {% endfor %}
+      {% if isEmpty %}
+        {% comment %}
+          Add default collections to help with onboarding
+        {% endcomment %}
+        {% include 'onboarding-featured-collections' %}
+      {% else %}
+        {% for collection in list_collections reversed %}
+          {%- assign collection_handle = collection.handle -%}
+
+          {% if collection_handle == 'frontpage' %}
+            {% continue %}
+          {% else %}
+            {%- assign collection_index = collection_index | plus: 1 -%}
+          {% endif %}
+          {% include 'collection-grid-collage' %}
+        {% endfor %}
+      {% endif %}
     {% endif %}
-  </ul>
+  {% else %}
+    {% for block in section.blocks %}
+      {%- assign collection = collections[block.settings.collection] -%}
+      {%- assign collection_handle = collection.handle -%}
+      {%- assign collection_index = forloop.index -%}
+      {% include 'collection-grid-collage' %}
+    {% endfor %}
+  {% endif %}
 </div>
 
 
@@ -58,7 +101,7 @@
 {
   "name": {
     "da": "Siden Kollektionsliste",
-    "de": "Kategorien-Liste Seite",
+    "de": "Seite für Kategorien",
     "en": "Collections list page",
     "es": "Lista de colecciones",
     "fi": "Kokoelmaluettelosivu",
@@ -82,11 +125,11 @@
       "type": "paragraph",
       "content": {
         "da": "Alle dine kollektioner vises som standard. Hvis du vil tilpasse din liste, skal du vælge \"Valgte\" og tilføje kollektioner.",
-        "de": "Alle kategorien sind automatisch gelistet. Zum Ändern der Liste wählen Sie 'Ausgewählt' und fügen Sie Kategorien hinzu.",
+        "de": "Alle Ihre Kategorien werden standardmäßig aufgeführt. Wählen Sie \"Ausgewählte\" und fügen Sie Kategorien hinzu, um Ihre Liste anzupassen.",
         "en": "All of your collections are listed by default. To customize your list, choose 'Selected' and add collections.",
-        "es": "Todas tus colecciones están enlistadas por defecto. Para personalizar tu lista, elige 'Seleccionadas' y agrega colecciones.",
+        "es": "Todas tus colecciones están enlistadas por defecto. Para personalizar tu lista, elige 'Seleccionado' y agrega colecciones.",
         "fi": "Kaikki kokoelmasi näkyvät oletuksena. Voit mukauttaa luetteloa napauttamalla \"Valittu\" ja lisäämällä kokoelmia.",
-        "fr": "Toutes vos collections sont listées par défaut. Pour personaliser votre liste, cliquez sur « Sélection » et ajoutez des collections.",
+        "fr": "Toutes vos collections sont listées par défaut. Pour personnaliser votre liste, choisissez « Sélectionnée » et ajoutez des collections.",
         "hi": "आपके सभी कलेक्शन्स डिफ़ॉल्ट रूप से सूचीबद्ध हैं. अपनी सूची कस्टमाइज़ करने के लिए, 'चयनित' चुनें और कलेक्शन्स जोड़ें.",
         "it": "Tutte le tue collezioni vengono elencate per impostazione predefinita. Per personalizzare il tuo elenco, scegli \"Selezionato\" e aggiungi delle collezioni.",
         "ja": "すべてのコレクションがデフォルトで一覧表示されます。一覧をカスタマイズするには、「選択済み」を選択してコレクションを追加します。",
@@ -107,11 +150,11 @@
       "id": "display_type",
       "label": {
         "da": "Vælg de kollektioner, der skal vises",
-        "de": "Kategorien auswählen, die angezeigt werden sollen",
+        "de": "Kategorien für Anzeige auswählen",
         "en": "Select collections to show",
         "es": "Selecciona colecciones para mostrar",
         "fi": "Valitse näytettävät kokoelmat",
-        "fr": "Sélectionner les collections à afficher",
+        "fr": "Sélectionnez les collections à afficher",
         "hi": "दिखाने के लिए कलेक्शन्स चुनें",
         "it": "Seleziona le collezioni da mostrare",
         "ja": "表示するコレクションを選択する",
@@ -134,7 +177,7 @@
             "da": "Alle",
             "de": "Alle",
             "en": "All",
-            "es": "Todas",
+            "es": "Todos",
             "fi": "Kaikki",
             "fr": "Toutes",
             "hi": "सभी",
@@ -144,7 +187,7 @@
             "ms": "Semua",
             "nb": "Alle",
             "nl": "Alle",
-            "pt-BR": "Tudo",
+            "pt-BR": "Todos",
             "pt-PT": "Tudo",
             "sv": "Alla",
             "th": "ทั้งหมด",
@@ -156,11 +199,11 @@
           "value": "selected",
           "label": {
             "da": "Valgt",
-            "de": "Ausgewählt",
+            "de": "Ausgewählte",
             "en": "Selected",
-            "es": "Seleccionadas",
+            "es": "Seleccionado",
             "fi": "Valittu",
-            "fr": "Sélection",
+            "fr": "Sélectionnée",
             "hi": "चयनित",
             "it": "Selezionato",
             "ja": "選択済み",
@@ -187,7 +230,7 @@
         "en": "Sort collections by:",
         "es": "Ordenar colecciones por:",
         "fi": "Lajittele kokoelmat seuraavasti:",
-        "fr": "Trier les collections par:",
+        "fr": "Trier les collections par :",
         "hi": "इसके द्वारा कलेक्शन्स को क्रमबद्ध करें:",
         "it": "Ordina le collezioni per:",
         "ja": "コレクションの並べ替え方法:",
@@ -195,7 +238,7 @@
         "ms": "Susunan koleksi oleh:",
         "nb": "Sorter samlinger etter:",
         "nl": "Collecties sorteren op:",
-        "pt-BR": "Organizar coleções por:",
+        "pt-BR": "Ordenar coleções por:",
         "pt-PT": "Ordenar coleções por:",
         "sv": "Sortera kollektioner efter:",
         "th": "จัดเรียงคอลเลกชันตาม:",
@@ -204,11 +247,11 @@
       },
       "info": {
         "da": "Sortering gælder kun, når \"Alle\" er valgt",
-        "de": "Sortieren funktioniert nur, wenn 'Alle' ausgewählt ist",
+        "de": "Sortierung gilt nur bei Auswahl von \"Alle\"",
         "en": "Sorting only applies when 'All' is selected",
-        "es": "La función ordenar solo se aplica cuando se selecciona \"Todas\"",
+        "es": "La función ordenar solo se aplica cuando se selecciona \"Todos\"",
         "fi": "Lajittelua sovelletaan vain, kun valintana on \"Kaikki\"",
-        "fr": "Le tri ne s'applique que lorsque “Toutes“ est sélectionné",
+        "fr": "Le tri ne s'applique que lorsque « Toutes » est sélectionné",
         "hi": "क्रमबद्ध करना केवल तब लागू होती है जब 'सभी' का चयन किया जाता है",
         "it": "L'ordinamento viene applicato solo quanto è selezionato \"Tutto\"",
         "ja": "「すべて」が選択されている場合にのみ並べ替えを適用する",
@@ -216,7 +259,7 @@
         "ms": "Penyusunan hanya terpakai apabila 'Semua' dipilih",
         "nb": "Sortering gjelder bare når «Alle» er valgt",
         "nl": "Sorteren is alleen van toepassing als Alles is geselecteerd",
-        "pt-BR": "A organização só se aplica quando \"Tudo\" está selecionado",
+        "pt-BR": "A classificação só se aplica quando \"Tudo\" está selecionado",
         "pt-PT": "A ordenação só se aplica quando \"Tudo\" está selecionado",
         "sv": "Sortering gäller endast när \"Alla\" är markerat",
         "th": "การจัดเรียงจะใช้ได้เมื่อเลือก 'ทั้งหมด' เท่านั้น",
@@ -233,7 +276,7 @@
             "en": "Product count, high to low",
             "es": "Recuento de productos, de mayor a menor",
             "fi": "Tuotteiden määrä suurimmasta pienimpään",
-            "fr": "Nombre de produits, ordre décroissant",
+            "fr": "Nombre de produits, par ordre décroissant",
             "hi": "उत्पाद गणना, उच्च से निम्न",
             "it": "Conteggio decrescente prodotti",
             "ja": "商品数の多い順",
@@ -257,7 +300,7 @@
             "en": "Product count, low to high",
             "es": "Recuento de productos, de menor a mayor",
             "fi": "Tuotteiden määrä pienimmästä suurimpaan",
-            "fr": "Nombre de produits, ordre croissant",
+            "fr": "Nombre de produits, par ordre croissant",
             "hi": "उत्पाद गणना, निम्न से उच्च",
             "it": "Conteggio crescente prodotti",
             "ja": "商品数の少ない順",
@@ -281,10 +324,10 @@
             "en": "Alphabetically, A-Z",
             "es": "Alfabéticamente, A-Z",
             "fi": "Aakkosjärjestyksessä A–Z",
-            "fr": "Alphabétique, A-Z",
+            "fr": "Par ordre alphabétique, de A à Z",
             "hi": "वर्णमाला के अनुसार: A-Z",
             "it": "In ordine alfabetico, A - Z",
-            "ja": "アルファベット順、 A-Z",
+            "ja": "アルファベット順, A-Z",
             "ko": "알파벳순, A-Z",
             "ms": "Mengikut abjad, A-Z",
             "nb": "Alfabetisk, A–Å",
@@ -305,10 +348,10 @@
             "en": "Alphabetically, Z-A",
             "es": "Alfabéticamente, Z-A",
             "fi": "Aakkosjärjestyksessä Z–A",
-            "fr": "Alphabétique, Z-A",
+            "fr": "Par ordre alphabétique, de Z à A",
             "hi": "वर्णमाला के अनुसार: Z-A",
             "it": "In ordine alfabetico, Z - A",
-            "ja": "アルファベット順、 Z-A",
+            "ja": "アルファベット順, Z-A",
             "ko": "알파벳순, Z-A",
             "ms": "Mengikut abjad, Z-A",
             "nb": "Alfabetisk, Å–A",
@@ -325,11 +368,11 @@
           "value": "date",
           "label": {
             "da": "Dato, ældre til nyere",
-            "de": "Datum, alt zu neu",
+            "de": "Datum: alt bis neu",
             "en": "Date, old to new",
             "es": "Fecha: antiguo(a) a reciente",
             "fi": "Päivämäärä vanhimmasta uusimpaan",
-            "fr": "Date, anciennes à récentes",
+            "fr": "Date, de la plus ancienne à la plus récente",
             "hi": "दिनांक, पुरानी से नई",
             "it": "Data, dal più vecchio al più recente",
             "ja": "古い商品順",
@@ -349,13 +392,13 @@
           "value": "date_reversed",
           "label": {
             "da": "Dato, nyere til ældre",
-            "de": "Datum, neu zu alt",
+            "de": "Datum: neu bis alt",
             "en": "Date, new to old",
             "es": "Fecha: reciente a antiguo(a)",
             "fi": "Päivämäärä uusimmasta vanhimpaan",
-            "fr": "Date, récentes à anciennes",
+            "fr": "Date, de la plus récente à la plus ancienne",
             "hi": "दिनांक पुरानी से नई",
-            "it": "Data, dal più recente al più vecchio",
+            "it": "Data, dal più al meno recente",
             "ja": "新着順",
             "ko": "날짜(최신 날짜부터)",
             "ms": "Tarikh, yang baru hingga lama",
@@ -370,35 +413,6 @@
           }
         }
       ]
-    },
-    {
-      "type": "range",
-      "id": "grid",
-      "label": {
-        "da": "Kollektioner pr. række",
-        "de": "Kategorien per Reihe",
-        "en": "Collections per row",
-        "es": "Colecciones por fila",
-        "fi": "Kokoelmia per rivi",
-        "fr": "Collections par rangée",
-        "hi": "प्रति पंक्ति कलेक्शन",
-        "it": "Collezioni per riga",
-        "ja": "行あたりのコレクション数",
-        "ko": "열 별 컬렉션",
-        "ms": "Koleksi setiap baris",
-        "nb": "Samlinger per rad",
-        "nl": "Collecties per rij",
-        "pt-BR": "Coleções por linha",
-        "pt-PT": "Coleções por linha",
-        "sv": "Produktserier per rad",
-        "th": "คอลเลกชันต่อแถว",
-        "zh-CN": "每行产品系列数",
-        "zh-TW": "每列商品系列數"
-      },
-      "default": 3,
-      "min": 2,
-      "max": 5,
-      "step": 1
     }
   ],
   "blocks": [
@@ -408,11 +422,11 @@
         "da": "Samling",
         "de": "Kategorie",
         "en": "Collection",
-        "es": "Colección",
+        "es": "colección",
         "fi": "Kokoelma",
         "fr": "Collection",
         "hi": "कलेक्शन",
-        "it": "Collezione",
+        "it": "collezione",
         "ja": "コレクション",
         "ko": "컬렉션",
         "ms": "Koleksi",
@@ -431,11 +445,11 @@
             "da": "Samling",
             "de": "Kategorie",
             "en": "Collection",
-            "es": "Colección",
+            "es": "colección",
             "fi": "Kokoelma",
             "fr": "Collection",
             "hi": "कलेक्शन",
-            "it": "Collezione",
+            "it": "collezione",
             "ja": "コレクション",
             "ko": "컬렉션",
             "ms": "Koleksi",

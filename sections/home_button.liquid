@@ -1,0 +1,64 @@
+<hr>
+<div id="section-bouton">
+  <div class="section-header text-center">
+    <h3> {{ section.settings.text-box }} </h3>
+  </div>
+
+  {% for block in section.blocks %}  
+  <div class="btn" id="call-to-action">   
+    <a href="{{ block.settings.link }}" class="btn">{{ block.settings.textelien }}</a>
+  </div> 
+  {% endfor %}
+
+</div>  
+<hr>
+{% schema %}
+{
+  "name": "Home button",
+	"max_blocks": 3,
+  "settings": [
+    {
+      "id": "text-box",
+      "type": "text",
+      "label": "Heading",
+      "default": "Title"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "select",
+      "name": "Ajouter un bouton",
+      "settings": [
+        {
+          "id": "lien",
+          "type": "url",
+       		"label": "Lien Boutton"
+        },
+        {
+          "id": "textelien",
+          "type": "text",
+          "label": "Texte Bouton",
+          "default": "Valider"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Block ",
+      "category": "CTA button",
+      "blocks": [
+        { 
+          "type": "select"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+
+{% stylesheet %}
+{% endstylesheet %}
+
+{% javascript %}
+{% endjavascript %}
