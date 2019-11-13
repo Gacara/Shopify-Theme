@@ -1282,6 +1282,53 @@ button[disabled],
 html input[disabled] {
   cursor: default;
 }
+.bouton{
+  justify-content:center;
+  text-align: center!important;
+  display: flex;
+  padding: 8px 10px;
+  margin: 0;
+  width: auto;
+  line-height: 1.42;
+  font-weight: $accentFontWeightBold;
+  text-decoration: none;
+  text-align: center;
+  vertical-align: middle;
+  white-space: normal;
+  cursor: pointer;
+  border: 1px solid transparent;
+  @include prefix("user-select", "none");
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border-radius: $radius;
+
+  /*================ Set primary button colors - can override later ================*/
+  background-color: $colorBtnPrimary;
+  color: $colorBtnPrimaryText;
+  @include transition(background-color 0.4s ease-out);
+
+  &:hover {
+    @include transition(background-color 0.15s ease-out);
+    background-color: $colorBtnPrimaryHover;
+    color: $colorBtnPrimaryText;
+  }
+
+  &:active {
+    @include transition(background-color 0.15s ease-out);
+    background-color: $colorBtnPrimaryActive;
+    color: $colorBtnPrimaryText;
+  }
+
+  &[disabled],
+  &.disabled {
+    cursor: default;
+    color: darken($disabledBorder, 27%);
+    background-color: $disabledGrey;
+  
+}
+
+}
+
 
 .btn,
 .rte .btn {

@@ -1,17 +1,16 @@
 <hr>
-<div id="section-bouton">
+<div id="section-bouton" class="grid">
   <div class="section-header text-center">
     <h3> {{ section.settings.text-box }} </h3>
   </div>
 
   {% for block in section.blocks %}  
-  <div class="btn" id="call-to-action">   
-    <a href="{{ block.settings.link }}" class="btn">{{ block.settings.textelien }}</a>
+  <div class="{{ block.settings.lien }}" id="call-to-action">   
+    <a href="{{ block.settings.lien }}" class="bouton {{ block.settings.size }} text-center">{{ block.settings.textelien }}</a>
   </div> 
   {% endfor %}
 
 </div>  
-<hr>
 {% schema %}
 {
   "name": "Home button",
@@ -22,6 +21,7 @@
       "type": "text",
       "label": "Heading",
       "default": "Title"
+    
     }
   ],
   "blocks": [
@@ -32,7 +32,7 @@
         {
           "id": "lien",
           "type": "url",
-       		"label": "Lien Boutton"
+       		"label": "Lien du Bouton"
         },
         {
           "id": "textelien",
@@ -45,8 +45,8 @@
   ],
   "presets": [
     {
-      "name": "Block ",
-      "category": "CTA button",
+      "name": "Block Button",
+      "category": "Home Button",
       "blocks": [
         { 
           "type": "select"
